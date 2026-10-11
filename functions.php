@@ -112,13 +112,18 @@ function api_only_redirect_frontend() {
 		return;
 	}
 
-	$should_redirect = defined( 'API_ONLY_REDIRECT_FRONTEND' ) ? API_ONLY_REDIRECT_FRONTEND : true;
+	//$should_redirect = defined( 'API_ONLY_REDIRECT_FRONTEND' ) ? API_ONLY_REDIRECT_FRONTEND : true;
 
-	if ( $should_redirect ) {
+	/*if ( $should_redirect ) {
 		wp_safe_redirect( rest_url(), 302 );
 		exit;
+	}*/
+
+	/* Solution for SPA websites */
+
+    if (is_front_page() && !is_admin()) { $file = get_stylesheet_directory() . '/index.html'; if (file_exists($file)) { header('Content-Type: text/html; charset=UTF-8'); readfile($file); exit; } }
+
 	}
-}
 add_action( 'template_redirect', 'api_only_redirect_frontend' );
 
 /**
@@ -322,6 +327,25 @@ function api_only_register_routes() {
 
 }
 add_action( 'rest_api_init', 'api_only_register_routes' );
+
+
+
+
+function redirect_frontend() {
+    if (is_admin() || wp_doing_ajax() || (defined('REST_REQUEST') && REST_REQUEST)) {
+        return;
+    }
+
+    if (is_front_page()) {
+        wp_safe_redirect(
+            get_stylesheet_directory_uri() . '/index.html',
+            302
+        );
+        exit;
+    }
+}
+add_action( 'template_redirect', 'redirect_frontend' );
+
 
 /**
  * ---------------------------------------------------------------------
